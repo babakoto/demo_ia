@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../localization/language_menu.dart';
 import 'memory_card.dart';
 import 'memory_card_tile.dart';
 import 'memory_game_controller.dart';
@@ -78,15 +80,17 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
   @override
   Widget build(BuildContext context) {
     final MemoryLevel level = _controller.level;
+    final AppLocalizations l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Jeu de memoire'),
+        title: Text(l10n.appTitle),
         actions: <Widget>[
+          const LanguageMenu(),
           IconButton(
             key: MemoryGamePage.restartButtonKey,
-            tooltip: 'Rejouer',
+            tooltip: l10n.restartTooltip,
             onPressed: _controller.restart,
             icon: const Icon(Icons.refresh),
           ),
@@ -190,6 +194,7 @@ class _ScoreBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
     return Padding(
       padding: const .fromLTRB(16, 16, 16, 0),
       child: Row(
@@ -197,7 +202,7 @@ class _ScoreBoard extends StatelessWidget {
           Expanded(
             child: _StatChip(
               statKey: MemoryGamePage.movesStatKey,
-              label: 'Coups',
+              label: l10n.movesLabel,
               value: '${controller.moves}',
               icon: Icons.touch_app_outlined,
             ),
@@ -206,7 +211,7 @@ class _ScoreBoard extends StatelessWidget {
           Expanded(
             child: _StatChip(
               statKey: MemoryGamePage.pairsStatKey,
-              label: 'Paires',
+              label: l10n.pairsLabel,
               value: '${controller.matchedPairs}/${controller.totalPairs}',
               icon: Icons.style_outlined,
             ),
@@ -278,6 +283,7 @@ class _VictoryOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context);
     return Positioned.fill(
       key: MemoryGamePage.victoryPanelKey,
       child: ColoredBox(
@@ -297,10 +303,13 @@ class _VictoryOverlay extends StatelessWidget {
                       color: theme.colorScheme.tertiary,
                     ),
                     const SizedBox(height: 12),
-                    Text('Bravo !', style: theme.textTheme.headlineSmall),
+                    Text(
+                      l10n.victoryTitle,
+                      style: theme.textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: 8),
                     Text(
-                      '${level.label} termine en $moves coups',
+                      l10n.victoryMessage(l10n.levelLabel(level.number), moves),
                       textAlign: .center,
                       style: theme.textTheme.bodyMedium,
                     ),
@@ -309,7 +318,7 @@ class _VictoryOverlay extends StatelessWidget {
                       key: MemoryGamePage.victoryReplayButtonKey,
                       onPressed: onReplay,
                       icon: const Icon(Icons.replay),
-                      label: const Text('Rejouer'),
+                      label: Text(l10n.victoryReplayLabel),
                     ),
                   ],
                 ),

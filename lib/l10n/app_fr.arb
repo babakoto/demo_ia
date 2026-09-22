@@ -1,0 +1,80 @@
+{
+  "@@locale": "fr",
+
+  "appTitle": "Jeu de memoire",
+  "@appTitle": {
+    "description": "Titre de l'application, affiche dans la barre superieure."
+  },
+
+  "restartTooltip": "Rejouer",
+  "@restartTooltip": {
+    "description": "Info-bulle du bouton de la barre qui relance une partie."
+  },
+
+  "movesLabel": "Coups",
+  "@movesLabel": {
+    "description": "Libelle du compteur de coups joues."
+  },
+
+  "pairsLabel": "Paires",
+  "@pairsLabel": {
+    "description": "Libelle du compteur de paires trouvees."
+  },
+
+  "levelLabel": "Niveau {number}",
+  "@levelLabel": {
+    "description": "Nom d'un niveau, par exemple Niveau 1.",
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+
+  "victoryTitle": "Bravo !",
+  "@victoryTitle": {
+    "description": "Titre du panneau affiche quand toutes les paires sont trouvees."
+  },
+
+  "victoryMessage": "{level} termine en {moves, plural, =1{1 coup} other{{moves} coups}}",
+  "@victoryMessage": {
+    "description": "Resume de la partie gagnee : niveau joue et nombre de coups.",
+    "placeholders": {
+      "level": {
+        "type": "String",
+        "example": "Niveau 1"
+      },
+      "moves": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+
+  "victoryReplayLabel": "Rejouer",
+  "@victoryReplayLabel": {
+    "description": "Bouton du panneau de victoire qui relance une partie."
+  },
+
+  "hiddenCardLabel": "Carte cachee",
+  "@hiddenCardLabel": {
+    "description": "Description accessible d'une carte face cachee."
+  },
+
+  "revealedCardLabel": "Carte {symbol}",
+  "@revealedCardLabel": {
+    "description": "Description accessible d'une carte retournee.",
+    "placeholders": {
+      "symbol": {
+        "type": "String",
+        "example": "🐶"
+      }
+    }
+  },
+
+  "languageTooltip": "Changer de langue",
+  "@languageTooltip": {
+    "description": "Info-bulle du bouton de selection de la langue."
+  }
+}

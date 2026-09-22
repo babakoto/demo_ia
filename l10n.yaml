@@ -1,0 +1,12 @@
+# Configuration de `flutter gen-l10n`.
+#
+# Les classes sont generees dans `lib/l10n/` (et versionnees) afin que
+# `flutter analyze`, les tests et l'IDE les voient sans build prealable.
+arb-dir: lib/l10n
+template-arb-file: app_fr.arb
+output-dir: lib/l10n
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+# `AppLocalizations.of(context)` renvoie une instance non nullable : les
+# delegates sont toujours installes par `MyApp`.
+nullable-getter: false

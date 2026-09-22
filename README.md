@@ -2,6 +2,23 @@
 
 A new Flutter project.
 
+## Langues
+
+L'application est traduite en francais, anglais et chinois. Elle suit la langue
+du systeme au demarrage ; le selecteur de la barre superieure permet d'en
+choisir une autre.
+
+Les textes vivent dans `lib/l10n/app_<langue>.arb` (`app_fr.arb` fait office de
+modele). Apres modification d'un fichier ARB :
+
+```bash
+flutter gen-l10n
+```
+
+Pour ajouter une langue : creer `lib/l10n/app_<code>.arb`, relancer la commande
+ci-dessus, ajouter le nom de la langue dans `LanguageMenu.displayName` et le
+code dans `CFBundleLocalizations` (`ios/Runner/Info.plist`).
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

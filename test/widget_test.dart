@@ -1,12 +1,25 @@
 import 'dart:math';
 
+import 'package:demo/l10n/app_localizations.dart';
 import 'package:demo/main.dart';
+import 'package:demo/src/localization/locale_controller.dart';
 import 'package:demo/src/memory_game/memory_card.dart';
 import 'package:demo/src/memory_game/memory_card_tile.dart';
 import 'package:demo/src/memory_game/memory_game_controller.dart';
 import 'package:demo/src/memory_game/memory_game_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// Enveloppe [home] dans une application localisee : les widgets du jeu lisent
+/// leurs libelles via `AppLocalizations`, qui doit donc etre installe.
+Widget localizedApp(Widget home, {Locale locale = const Locale('fr')}) {
+  return MaterialApp(
+    locale: locale,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: home,
+  );
+}
 
 void main() {
   group('MemoryGameController', () {
@@ -119,16 +132,12 @@ void main() {
     final MemoryGameController second = MemoryGameController(random: Random(2));
     addTearDown(second.dispose);
 
-    await tester.pumpWidget(
-      MaterialApp(home: MemoryGamePage(controller: first)),
-    );
+    await tester.pumpWidget(localizedApp(MemoryGamePage(controller: first)));
     await tester.pumpAndSettle();
 
     // Le State est reutilise (meme position, meme type) : la page doit basculer
     // sur `second`, sinon elle ecouterait un controleur libere.
-    await tester.pumpWidget(
-      MaterialApp(home: MemoryGamePage(controller: second)),
-    );
+    await tester.pumpWidget(localizedApp(MemoryGamePage(controller: second)));
     await tester.pumpAndSettle();
 
     first.dispose();
@@ -142,7 +151,10 @@ void main() {
   testWidgets('l application affiche le plateau du niveau 1', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    final LocaleController locale = LocaleController(const Locale('fr'));
+    addTearDown(locale.dispose);
+
+    await tester.pumpWidget(MyApp(localeController: locale));
     await tester.pumpAndSettle();
 
     expect(find.byType(MemoryGamePage), findsOneWidget);

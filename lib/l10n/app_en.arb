@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Memory game",
+  "restartTooltip": "Restart",
+  "movesLabel": "Moves",
+  "pairsLabel": "Pairs",
+  "levelLabel": "Level {number}",
+  "victoryTitle": "Well done!",
+  "victoryMessage": "{level} completed in {moves, plural, =1{1 move} other{{moves} moves}}",
+  "victoryReplayLabel": "Play again",
+  "hiddenCardLabel": "Hidden card",
+  "revealedCardLabel": "Card {symbol}",
+  "languageTooltip": "Change language"
+}

@@ -4,13 +4,14 @@ import 'package:flutter/foundation.dart';
 @immutable
 class MemoryLevel {
   const MemoryLevel({
-    required this.label,
+    required this.number,
     required this.columns,
     required this.symbols,
   });
 
-  /// Libelle du niveau, affiche au joueur.
-  final String label;
+  /// Numero du niveau. Le libelle affiche au joueur est construit a partir de
+  /// ce numero par la localisation (`AppLocalizations.levelLabel`).
+  final int number;
 
   /// Nombre de colonnes de la grille.
   final int columns;
@@ -29,7 +30,7 @@ class MemoryLevel {
 
   /// Premier niveau : 6 paires sur une grille 3 x 4, confortable en portrait.
   static const MemoryLevel level1 = MemoryLevel(
-    label: 'Niveau 1',
+    number: 1,
     columns: 3,
     symbols: <String>['🐶', '🐱', '🦊', '🐼', '🦁', '🐸'],
   );

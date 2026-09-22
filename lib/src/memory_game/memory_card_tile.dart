@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'memory_card.dart';
 
 /// Une carte tapable, avec une animation de retournement sur l'axe Y.
@@ -20,10 +21,13 @@ class MemoryCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool revealed = card.isRevealed;
+    final AppLocalizations l10n = AppLocalizations.of(context);
 
     return Semantics(
       button: true,
-      label: revealed ? 'Carte ${card.symbol}' : 'Carte cachee',
+      label: revealed
+          ? l10n.revealedCardLabel(card.symbol)
+          : l10n.hiddenCardLabel,
       child: GestureDetector(
         behavior: .opaque,
         onTap: revealed ? null : onTap,
@@ -73,10 +77,14 @@ class MemoryCardTile extends StatelessWidget {
       borderColor: matched ? colors.tertiary : colors.outlineVariant,
       child: Padding(
         padding: const .all(8),
-        child: FittedBox(
-          child: Text(
-            card.symbol,
-            style: const TextStyle(fontSize: 40),
+        // Le symbole est deja annonce par le libelle de la carte : le laisser
+        // dans l'arbre semantique le ferait lire deux fois.
+        child: ExcludeSemantics(
+          child: FittedBox(
+            child: Text(
+              card.symbol,
+              style: const TextStyle(fontSize: 40),
+            ),
           ),
         ),
       ),

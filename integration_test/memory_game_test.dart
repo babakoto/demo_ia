@@ -1,6 +1,9 @@
 import 'dart:math';
 
+import 'package:demo/l10n/app_localizations.dart';
 import 'package:demo/main.dart';
+import 'package:demo/src/localization/language_menu.dart';
+import 'package:demo/src/localization/locale_controller.dart';
 import 'package:demo/src/memory_game/memory_card.dart';
 import 'package:demo/src/memory_game/memory_card_tile.dart';
 import 'package:demo/src/memory_game/memory_game_controller.dart';
@@ -47,9 +50,24 @@ void main() {
     );
   }
 
-  Future<void> pumpGame(WidgetTester tester) async {
+  /// Application localisee minimale : les widgets du jeu lisent leurs libelles
+  /// via `AppLocalizations`, les delegates doivent donc etre installes.
+  Widget localizedApp(Widget home, {Locale locale = const Locale('fr')}) {
+    return MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: home,
+    );
+  }
+
+  /// Pompe le plateau dans la langue [locale] (francais par defaut).
+  Future<void> pumpGame(
+    WidgetTester tester, {
+    Locale locale = const Locale('fr'),
+  }) async {
     await tester.pumpWidget(
-      MaterialApp(home: MemoryGamePage(controller: controller)),
+      localizedApp(MemoryGamePage(controller: controller), locale: locale),
     );
     await tester.pumpAndSettle();
   }
@@ -287,10 +305,159 @@ void main() {
     });
   });
 
+  group('Localisation', () {
+    /// Pompe l'application complete. [locale] a `null` laisse la langue du
+    /// systeme decider, comme au premier lancement.
+    Future<void> pumpApp(WidgetTester tester, {Locale? locale}) async {
+      final LocaleController localeController = LocaleController(locale);
+      addTearDown(localeController.dispose);
+
+      await tester.pumpWidget(MyApp(localeController: localeController));
+      await tester.pumpAndSettle();
+    }
+
+    /// Ouvre le selecteur de la barre superieure et choisit [locale].
+    Future<void> selectLanguage(WidgetTester tester, Locale locale) async {
+      await tester.tap(find.byKey(LanguageMenu.menuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(LanguageMenu.optionKey(locale)));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('l application supporte le francais, l anglais et le chinois', (
+      WidgetTester tester,
+    ) async {
+      expect(
+        AppLocalizations.supportedLocales
+            .map((Locale locale) => locale.languageCode)
+            .toSet(),
+        <String>{'fr', 'en', 'zh'},
+      );
+
+      await pumpApp(tester, locale: const Locale('fr'));
+      await tester.tap(find.byKey(LanguageMenu.menuKey));
+      await tester.pumpAndSettle();
+
+      // Chaque langue est proposee, ecrite dans sa propre langue.
+      expect(find.text('Français'), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
+      expect(find.text('中文'), findsOneWidget);
+    });
+
+    testWidgets('choisir l anglais traduit toute la page', (
+      WidgetTester tester,
+    ) async {
+      await pumpApp(tester, locale: const Locale('fr'));
+      expect(find.text('Jeu de memoire'), findsOneWidget);
+
+      await selectLanguage(tester, const Locale('en'));
+
+      expect(find.text('Memory game'), findsOneWidget);
+      expect(find.text('Moves'), findsOneWidget);
+      expect(find.text('Pairs'), findsOneWidget);
+      expect(find.text('Jeu de memoire'), findsNothing);
+      // Le plateau n'est pas reconstruit depuis zero par le changement.
+      expect(find.byType(MemoryCardTile), findsNWidgets(12));
+    });
+
+    testWidgets('choisir le chinois traduit toute la page', (
+      WidgetTester tester,
+    ) async {
+      await pumpApp(tester, locale: const Locale('fr'));
+
+      await selectLanguage(tester, const Locale('zh'));
+
+      expect(find.text('记忆游戏'), findsOneWidget);
+      expect(find.text('步数'), findsOneWidget);
+      expect(find.text('配对'), findsOneWidget);
+      expect(find.byType(MemoryCardTile), findsNWidgets(12));
+    });
+
+    testWidgets('revenir au francais restaure les libelles francais', (
+      WidgetTester tester,
+    ) async {
+      await pumpApp(tester, locale: const Locale('en'));
+      expect(find.text('Memory game'), findsOneWidget);
+
+      await selectLanguage(tester, const Locale('fr'));
+
+      expect(find.text('Jeu de memoire'), findsOneWidget);
+      expect(find.text('Coups'), findsOneWidget);
+      expect(find.text('Paires'), findsOneWidget);
+      expect(find.text('Memory game'), findsNothing);
+    });
+
+    testWidgets('la langue du systeme est appliquee au demarrage', (
+      WidgetTester tester,
+    ) async {
+      tester.platformDispatcher.localesTestValue = <Locale>[const Locale('zh')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      // Aucune langue choisie : l'application suit le systeme.
+      await pumpApp(tester);
+
+      expect(find.text('记忆游戏'), findsOneWidget);
+    });
+
+    testWidgets('une langue inconnue retombe sur une langue supportee', (
+      WidgetTester tester,
+    ) async {
+      tester.platformDispatcher.localesTestValue = <Locale>[const Locale('de')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await pumpApp(tester);
+
+      // Premiere locale supportee : l'anglais, jamais un libelle brut.
+      expect(find.text('Memory game'), findsOneWidget);
+      expect(find.byType(MemoryGamePage), findsOneWidget);
+    });
+
+    testWidgets('l ecran de victoire est traduit', (
+      WidgetTester tester,
+    ) async {
+      await pumpGame(tester, locale: const Locale('en'));
+
+      for (int pair = 0; pair < controller.totalPairs; pair++) {
+        final (int first, int second) = findMatchingPair(controller);
+        await tapCard(tester, first);
+        await tapCard(tester, second);
+      }
+
+      expect(find.byKey(MemoryGamePage.victoryPanelKey), findsOneWidget);
+      expect(find.text('Well done!'), findsOneWidget);
+      expect(find.text('Level 1 completed in 6 moves'), findsOneWidget);
+    });
+
+    testWidgets('les libelles accessibles des cartes sont traduits', (
+      WidgetTester tester,
+    ) async {
+      // Les libelles semantiques ne sont construits que si l'arbre
+      // d'accessibilite est actif ; il doit etre relache avant la fin du test.
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpGame(tester, locale: const Locale('en'));
+      expect(find.bySemanticsLabel('Hidden card'), findsNWidgets(12));
+
+      await tapCard(tester, 0);
+
+      expect(
+        find.bySemanticsLabel('Card ${controller.cards[0].symbol}'),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Hidden card'), findsNWidgets(11));
+
+      handle.dispose();
+    });
+  });
+
   testWidgets('l application demarre directement sur le jeu de memoire', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    final LocaleController localeController =
+        LocaleController(const Locale('fr'));
+    addTearDown(localeController.dispose);
+
+    await tester.pumpWidget(MyApp(localeController: localeController));
     await tester.pumpAndSettle();
 
     expect(find.byType(MemoryGamePage), findsOneWidget);
