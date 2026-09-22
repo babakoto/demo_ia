@@ -35,6 +35,24 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # State manager (couche application : un bloc par feature).
+  bloc: ^9.2.1
+  flutter_bloc: ^9.1.1
+  bloc_concurrency: ^0.3.0
+
+  # DI (couche core : get_it + injectable, cable par build_runner).
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+
+  # Result / errors : les repositories du domaine renvoient `Success<T>`.
+  fos: ^0.0.8
+
+  # Annotations de codegen des entites / etats immuables.
+  freezed_annotation: 3.1.0 # version exacte exigee par freezed 4.x
+
+  # Le jeu est 100% local : ni dio/retrofit, ni firebase, ni go_router
+  # (un seul ecran) tant qu'aucune feature ne les justifie.
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -49,6 +67,18 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Codegen : freezed (entites + etats) et injectable (di.config.dart).
+  build_runner: ^2.15.0
+  # freezed 3.x genere `final` sur des parametres nommes, syntaxe retiree par
+  # Dart 3.13 (extraneous_modifier) : la 4.x est le premier palier compilable.
+  freezed: ^4.0.2
+  injectable_generator: ^3.0.2
+
+  # NB: `architecture_linter` (le plugin analyzer habituel pour les frontieres
+  # de couches) epingle analyzer <7.0.0 et ne peut donc pas cohabiter avec
+  # freezed (analyzer >=13.0.0). Les frontieres sont verifiees a la place par
+  # un test dedie : `test/architecture_boundaries_test.dart`.
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

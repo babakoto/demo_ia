@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'memory_card.dart';
+import '../../../../../core/constants/app_durations.dart';
+import '../../../../../core/constants/app_strings.dart';
+import '../../../../domain/entities/memory_card_entity.dart';
 
 /// Une carte tapable, avec une animation de retournement sur l'axe Y.
 class MemoryCardTile extends StatelessWidget {
@@ -12,9 +14,7 @@ class MemoryCardTile extends StatelessWidget {
     required this.onTap,
   });
 
-  static const Duration flipDuration = Duration(milliseconds: 280);
-
-  final MemoryCard card;
+  final MemoryCardEntity card;
   final VoidCallback onTap;
 
   @override
@@ -23,13 +23,15 @@ class MemoryCardTile extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: revealed ? 'Carte ${card.symbol}' : 'Carte cachee',
+      label: revealed
+          ? AppStrings.revealedCardHint(card.symbol)
+          : AppStrings.hiddenCardHint,
       child: GestureDetector(
         behavior: .opaque,
         onTap: revealed ? null : onTap,
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0, end: revealed ? 1 : 0),
-          duration: flipDuration,
+          duration: AppDurations.cardFlip,
           curve: Curves.easeInOut,
           builder: (BuildContext context, double value, Widget? child) {
             final bool showFront = value >= 0.5;
