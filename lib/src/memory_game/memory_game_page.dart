@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../theme/theme_mode_button.dart';
 import 'memory_card.dart';
 import 'memory_card_tile.dart';
 import 'memory_game_controller.dart';
@@ -81,9 +82,9 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Jeu de memoire'),
         actions: <Widget>[
+          const ThemeModeButton(),
           IconButton(
             key: MemoryGamePage.restartButtonKey,
             tooltip: 'Rejouer',

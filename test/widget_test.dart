@@ -5,6 +5,8 @@ import 'package:demo/src/memory_game/memory_card.dart';
 import 'package:demo/src/memory_game/memory_card_tile.dart';
 import 'package:demo/src/memory_game/memory_game_controller.dart';
 import 'package:demo/src/memory_game/memory_game_page.dart';
+import 'package:demo/src/theme/theme_controller.dart';
+import 'package:demo/src/theme/theme_mode_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -148,5 +150,55 @@ void main() {
     expect(find.byType(MemoryGamePage), findsOneWidget);
     expect(find.byType(MemoryCardTile), findsNWidgets(12));
     expect(find.text('Jeu de memoire'), findsOneWidget);
+  });
+
+  group('ThemeController', () {
+    test('suit le systeme par defaut', () {
+      final ThemeController controller = ThemeController();
+      addTearDown(controller.dispose);
+
+      expect(controller.mode, ThemeMode.system);
+    });
+
+    test('ne notifie que sur un changement reel de mode', () {
+      final ThemeController controller = ThemeController();
+      addTearDown(controller.dispose);
+      int notifications = 0;
+      controller.addListener(() => notifications++);
+
+      controller.setMode(.dark);
+      controller.setMode(.dark);
+
+      expect(controller.mode, ThemeMode.dark);
+      expect(notifications, 1);
+    });
+
+    test('setDark quitte le suivi du systeme', () {
+      final ThemeController controller = ThemeController();
+      addTearDown(controller.dispose);
+
+      controller.setDark(true);
+      expect(controller.mode, ThemeMode.dark);
+
+      controller.setDark(false);
+      expect(controller.mode, ThemeMode.light);
+    });
+  });
+
+  testWidgets('sans ThemeScope, la page n affiche pas le bouton de theme', (
+    WidgetTester tester,
+  ) async {
+    final MemoryGameController controller = MemoryGameController(
+      random: Random(7),
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(home: MemoryGamePage(controller: controller)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(ThemeModeButton.buttonKey), findsNothing);
+    expect(find.byKey(MemoryGamePage.restartButtonKey), findsOneWidget);
   });
 }

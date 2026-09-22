@@ -5,6 +5,8 @@ import 'package:demo/src/memory_game/memory_card.dart';
 import 'package:demo/src/memory_game/memory_card_tile.dart';
 import 'package:demo/src/memory_game/memory_game_controller.dart';
 import 'package:demo/src/memory_game/memory_game_page.dart';
+import 'package:demo/src/theme/theme_controller.dart';
+import 'package:demo/src/theme/theme_mode_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -296,5 +298,159 @@ void main() {
     expect(find.byType(MemoryGamePage), findsOneWidget);
     expect(find.text('Jeu de memoire'), findsOneWidget);
     expect(find.byType(MemoryCardTile), findsNWidgets(12));
+  });
+
+  group('Mode sombre', () {
+    /// Fixe la luminosite "systeme" vue par l'application.
+    ///
+    /// Sans cela, le resultat dependrait du reglage de l'appareil qui execute
+    /// les tests : un telephone en mode sombre ferait echouer les scenarios
+    /// qui partent du mode clair.
+    void usePlatformBrightness(WidgetTester tester, Brightness brightness) {
+      tester.platformDispatcher.platformBrightnessTestValue = brightness;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    }
+
+    Future<void> pumpApp(
+      WidgetTester tester, {
+      ThemeController? themeController,
+    }) async {
+      await tester.pumpWidget(MyApp(themeController: themeController));
+      await tester.pumpAndSettle();
+    }
+
+    /// Luminosite reellement appliquee a la page.
+    Brightness brightnessOf(WidgetTester tester) =>
+        Theme.of(tester.element(find.byType(MemoryGamePage))).brightness;
+
+    ThemeMode? themeModeOf(WidgetTester tester) =>
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode;
+
+    Future<void> tapThemeButton(WidgetTester tester) async {
+      await tester.tap(find.byKey(ThemeModeButton.buttonKey));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('demarre sur le reglage du systeme', (
+      WidgetTester tester,
+    ) async {
+      usePlatformBrightness(tester, .dark);
+      await pumpApp(tester);
+
+      expect(themeModeOf(tester), ThemeMode.system);
+      expect(brightnessOf(tester), Brightness.dark);
+      // Le bouton propose la sortie du mode sombre.
+      expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+    });
+
+    testWidgets('le bouton est present dans la barre du jeu', (
+      WidgetTester tester,
+    ) async {
+      usePlatformBrightness(tester, .light);
+      await pumpApp(tester);
+
+      expect(find.byKey(ThemeModeButton.buttonKey), findsOneWidget);
+      expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.light_mode_outlined), findsNothing);
+    });
+
+    testWidgets('le bouton bascule en sombre puis revient en clair', (
+      WidgetTester tester,
+    ) async {
+      usePlatformBrightness(tester, .light);
+      await pumpApp(tester);
+      expect(brightnessOf(tester), Brightness.light);
+
+      await tapThemeButton(tester);
+
+      expect(brightnessOf(tester), Brightness.dark);
+      expect(themeModeOf(tester), ThemeMode.dark);
+      expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.dark_mode_outlined), findsNothing);
+
+      await tapThemeButton(tester);
+
+      expect(brightnessOf(tester), Brightness.light);
+      expect(themeModeOf(tester), ThemeMode.light);
+      expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
+    });
+
+    testWidgets('le bouton force le mode clair sur un systeme sombre', (
+      WidgetTester tester,
+    ) async {
+      usePlatformBrightness(tester, .dark);
+      await pumpApp(tester);
+      expect(brightnessOf(tester), Brightness.dark);
+
+      await tapThemeButton(tester);
+
+      // Le choix de l'utilisateur prend le pas sur le reglage du systeme.
+      expect(themeModeOf(tester), ThemeMode.light);
+      expect(brightnessOf(tester), Brightness.light);
+    });
+
+    testWidgets('le mode sombre repeint le plateau sans casser le jeu', (
+      WidgetTester tester,
+    ) async {
+      usePlatformBrightness(tester, .light);
+      await pumpApp(tester);
+
+      final ThemeData lightTheme =
+          Theme.of(tester.element(find.byType(MemoryGamePage)));
+      expect(lightTheme.brightness, Brightness.light);
+
+      await tapThemeButton(tester);
+
+      final ThemeData darkTheme =
+          Theme.of(tester.element(find.byType(MemoryGamePage)));
+      expect(darkTheme.colorScheme.brightness, Brightness.dark);
+      expect(
+        darkTheme.colorScheme.surface,
+        isNot(lightTheme.colorScheme.surface),
+      );
+
+      // Le plateau reste jouable apres la bascule.
+      expect(find.byType(MemoryCardTile), findsNWidgets(12));
+      await tester.tap(find.byKey(MemoryGamePage.cardKey(0)));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.help_outline), findsNWidgets(11));
+      expect(brightnessOf(tester), Brightness.dark);
+    });
+
+    testWidgets('le mode choisi survit a une nouvelle partie', (
+      WidgetTester tester,
+    ) async {
+      usePlatformBrightness(tester, .light);
+      await pumpApp(tester);
+
+      await tapThemeButton(tester);
+      expect(brightnessOf(tester), Brightness.dark);
+
+      await tester.tap(find.byKey(MemoryGamePage.restartButtonKey));
+      await tester.pumpAndSettle();
+
+      expect(brightnessOf(tester), Brightness.dark);
+      expect(find.byIcon(Icons.help_outline), findsNWidgets(12));
+      expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+    });
+
+    testWidgets('le mode injecte est applique au demarrage', (
+      WidgetTester tester,
+    ) async {
+      usePlatformBrightness(tester, .light);
+      final ThemeController themeController = ThemeController(
+        initialMode: .dark,
+      );
+      addTearDown(themeController.dispose);
+
+      await pumpApp(tester, themeController: themeController);
+
+      expect(brightnessOf(tester), Brightness.dark);
+
+      // Le controleur pilote aussi l'UI depuis l'exterieur du widget.
+      themeController.setMode(.light);
+      await tester.pumpAndSettle();
+      expect(brightnessOf(tester), Brightness.light);
+    });
   });
 }
